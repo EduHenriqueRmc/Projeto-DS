@@ -21,39 +21,12 @@ function showToast(msg, type = 'ok') {
 }
 
 /* ── Chat ── */
-function formatText(text) {
-  // Divide o texto em parágrafos pelas quebras de linha duplas ou simples
-  const paragraphs = text
-    .split(/\n{2,}/)          // separa blocos por linha em branco
-    .map(block =>
-      block
-        .split('\n')           // dentro de cada bloco, quebra por linha simples
-        .map(line => {
-          // Negrito: **texto** → <strong>texto</strong>
-          line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-          // Tópicos com hífen ou asterisco no início → marcador visual
-          line = line.replace(/^[\-\*]\s+/, '• ');
-          return line;
-        })
-        .join('<br>')           // junta linhas do mesmo bloco com quebra simples
-    )
-    .filter(p => p.trim() !== ''); // remove blocos vazios
-
-  return paragraphs.map(p => `<p>${p}</p>`).join('');
-}
-
 function appendMsg(text, role) {
   const win = document.getElementById('chatWindow');
   document.getElementById('chatEmpty')?.remove();
   const div = document.createElement('div');
   div.className = 'msg ' + role;
-
-  if (role === 'ai') {
-    div.innerHTML = formatText(text); // usa HTML formatado para respostas da IA
-  } else {
-    div.textContent = text;           // mensagens do usuário ficam como texto simples
-  }
-
+  div.textContent = text;
   win.appendChild(div);
   win.scrollTop = win.scrollHeight;
   return div;
