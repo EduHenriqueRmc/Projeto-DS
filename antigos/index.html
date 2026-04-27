@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CIntetize</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<header>
+  <div class="logo">CIntetize</div>
+  <div class="status-pill">
+    <span class="status-dot"></span>
+    IA Ativa
+  </div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-tab="chat">💬 AI Assistant</button>
+  <button class="tab-btn" data-tab="flashcards">🃏 Flashcards</button>
+  <button class="tab-btn" data-tab="dashboard">📊 Dashboard</button>
+</nav>
+
+<main>
+
+  <!-- AI ASSISTANT -->
+  <div id="tab-chat" class="tab-panel active">
+    <div class="section-title">AI Assistant</div>
+    <p class="section-sub">Tire dúvidas acadêmicas com a Llama 3.3</p>
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-empty" id="chatEmpty">
+        <span>🎓</span>
+        Faça uma pergunta para começar
+      </div>
+    </div>
+    <div class="chat-form">
+      <input type="text" id="chatInput" placeholder="Ex: O que é uma derivada?" />
+      <button class="btn" id="chatBtn">Enviar</button>
+    </div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div id="tab-flashcards" class="tab-panel">
+    <div class="section-title">Flashcards</div>
+    <p class="section-sub">Gere cartões de memorização com IA a partir do seu conteúdo</p>
+    <div class="fc-form">
+      <label>Título do baralho</label>
+      <input type="text" id="fcTitle" placeholder="Ex: Limites — Cálculo 1"/>
+      <label>Conteúdo base</label>
+      <textarea id="fcContent" placeholder="Cole aqui o texto ou tópicos que deseja transformar em flashcards..."></textarea>
+      <div class="fc-actions">
+        <button class="btn secondary" id="fcClearBtn">Limpar</button>
+        <button class="btn" id="fcBtn">✨ Gerar Flashcards</button>
+      </div>
+    </div>
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="tab-panel">
+    <div class="section-title">Dashboard</div>
+    <p class="section-sub">Acompanhe seu desempenho e métricas de estudo</p>
+    <div class="metrics-grid" id="metricsGrid">
+      <div class="metric-card">
+        <div class="metric-icon">📚</div>
+        <div class="metric-value" id="metSessoes">—</div>
+        <div class="metric-label">Sessões</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🃏</div>
+        <div class="metric-value" id="metDecks">—</div>
+        <div class="metric-label">Flash Decks</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🎯</div>
+        <div class="metric-value" id="metRetencao">—</div>
+        <div class="metric-label">Taxa de Retenção</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
+

@@ -5,87 +5,231 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CIntetize</title>
   <link rel="stylesheet" href="style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
 </head>
 <body>
 
-<header>
-  <div class="logo">CIntetize</div>
-  <div class="status-pill">
-    <span class="status-dot"></span>
-    IA Ativa
-  </div>
-</header>
-
-<nav>
-  <button class="tab-btn active" data-tab="chat">💬 AI Assistant</button>
-  <button class="tab-btn" data-tab="flashcards">🃏 Flashcards</button>
-  <button class="tab-btn" data-tab="dashboard">📊 Dashboard</button>
-</nav>
-
-<main>
-
-  <!-- AI ASSISTANT -->
-  <div id="tab-chat" class="tab-panel active">
-    <div class="section-title">AI Assistant</div>
-    <p class="section-sub">Tire dúvidas acadêmicas com a Llama 3.3</p>
-    <div class="chat-window" id="chatWindow">
-      <div class="chat-empty" id="chatEmpty">
-        <span>🎓</span>
-        Faça uma pergunta para começar
-      </div>
-    </div>
-    <div class="chat-form">
-      <input type="text" id="chatInput" placeholder="Ex: O que é uma derivada?" />
-      <button class="btn" id="chatBtn">Enviar</button>
-    </div>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">C</div>
+    <span class="logo-text">CIntetize</span>
   </div>
 
-  <!-- FLASHCARDS -->
-  <div id="tab-flashcards" class="tab-panel">
-    <div class="section-title">Flashcards</div>
-    <p class="section-sub">Gere cartões de memorização com IA a partir do seu conteúdo</p>
-    <div class="fc-form">
-      <label>Título do baralho</label>
-      <input type="text" id="fcTitle" placeholder="Ex: Limites — Cálculo 1"/>
-      <label>Conteúdo base</label>
-      <textarea id="fcContent" placeholder="Cole aqui o texto ou tópicos que deseja transformar em flashcards..."></textarea>
-      <div class="fc-actions">
-        <button class="btn secondary" id="fcClearBtn">Limpar</button>
-        <button class="btn" id="fcBtn">✨ Gerar Flashcards</button>
-      </div>
-    </div>
-    <div class="cards-grid" id="cardsGrid"></div>
-  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" data-tab="chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>AI Assistant</span>
+    </button>
+    <button class="nav-item" data-tab="flashcards">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      <span>Flashcards</span>
+    </button>
+  </nav>
 
-  <!-- DASHBOARD -->
-  <div id="tab-dashboard" class="tab-panel">
-    <div class="section-title">Dashboard</div>
-    <p class="section-sub">Acompanhe seu desempenho e métricas de estudo</p>
-    <div class="metrics-grid" id="metricsGrid">
-      <div class="metric-card">
-        <div class="metric-icon">📚</div>
-        <div class="metric-value" id="metSessoes">—</div>
-        <div class="metric-label">Sessões</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-icon">🃏</div>
-        <div class="metric-value" id="metDecks">—</div>
-        <div class="metric-label">Flash Decks</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-icon">🎯</div>
-        <div class="metric-value" id="metRetencao">—</div>
-        <div class="metric-label">Taxa de Retenção</div>
-      </div>
+  <div class="sidebar-footer">
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      IA Ativa
     </div>
   </div>
+</aside>
 
-</main>
+<!-- MAIN CONTENT -->
+<div class="layout">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="page-title" id="pageTitle">Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tab-panel active">
+      <div class="panel-header">
+        <div>
+          <h1 class="panel-title">Visão Geral</h1>
+          <p class="panel-sub">Acompanhe seu progresso de estudos</p>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card accent-blue">
+          <div class="metric-top">
+            <div class="metric-icon-wrap blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <span class="metric-badge">Total</span>
+          </div>
+          <div class="metric-value" id="metSessoes">—</div>
+          <div class="metric-label">Sessões de Estudo</div>
+          <div class="metric-bar"><div class="metric-bar-fill blue" id="barSessoes" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-card accent-purple">
+          <div class="metric-top">
+            <div class="metric-icon-wrap purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            </div>
+            <span class="metric-badge">Criados</span>
+          </div>
+          <div class="metric-value" id="metDecks">—</div>
+          <div class="metric-label">Flash Decks</div>
+          <div class="metric-bar"><div class="metric-bar-fill purple" id="barDecks" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-card accent-green">
+          <div class="metric-top">
+            <div class="metric-icon-wrap green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+            <span class="metric-badge">Média</span>
+          </div>
+          <div class="metric-value" id="metRetencao">—</div>
+          <div class="metric-label">Taxa de Retenção</div>
+          <div class="metric-bar"><div class="metric-bar-fill green" id="barRetencao" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="dash-grid-bottom">
+        <div class="dash-card recent-card">
+          <div class="dash-card-header">
+            <span class="dash-card-title">Atividade Recente</span>
+          </div>
+          <div class="activity-list" id="activityList">
+            <div class="activity-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Nenhuma atividade ainda
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card tips-card">
+          <div class="dash-card-header">
+            <span class="dash-card-title">Dicas de Estudo</span>
+          </div>
+          <div class="tips-list">
+            <div class="tip-item">
+              <div class="tip-icon">🧠</div>
+              <p>Revise flashcards todos os dias por pelo menos 10 minutos para melhorar a retenção.</p>
+            </div>
+            <div class="tip-item">
+              <div class="tip-icon">⏱️</div>
+              <p>Use a técnica Pomodoro: 25 min de estudo, 5 min de pausa.</p>
+            </div>
+            <div class="tip-item">
+              <div class="tip-icon">❓</div>
+              <p>Pergunte ao AI Assistant conceitos que não ficaram claros nas aulas.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="tab-chat" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h1 class="panel-title">AI Assistant</h1>
+          <p class="panel-sub">Tire dúvidas acadêmicas com a Llama 3.3</p>
+        </div>
+        <button class="btn btn-ghost" id="clearChatBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Limpar
+        </button>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-window" id="chatWindow">
+          <div class="chat-empty" id="chatEmpty">
+            <div class="chat-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <strong>Como posso te ajudar?</strong>
+            <span>Faça qualquer pergunta sobre seus estudos</span>
+            <div class="suggestions">
+              <button class="suggestion-chip" data-q="O que é uma derivada?">O que é uma derivada?</button>
+              <button class="suggestion-chip" data-q="Explique a Lei de Newton">Lei de Newton</button>
+              <button class="suggestion-chip" data-q="O que foi a Revolução Francesa?">Revolução Francesa</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-form">
+          <div class="chat-input-wrap">
+            <input type="text" id="chatInput" placeholder="Faça uma pergunta..." autocomplete="off"/>
+            <button class="send-btn" id="chatBtn" aria-label="Enviar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLASHCARDS -->
+    <div id="tab-flashcards" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h1 class="panel-title">Flashcards</h1>
+          <p class="panel-sub">Gere cartões de memorização com IA</p>
+        </div>
+      </div>
+
+      <div class="fc-layout">
+        <div class="fc-form-card">
+          <div class="fc-form-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Criar Baralho
+          </div>
+          <div class="fc-field">
+            <label>Título do Baralho</label>
+            <input type="text" id="fcTitle" placeholder="Ex: Cálculo — Limites"/>
+          </div>
+          <div class="fc-field">
+            <label>Conteúdo Base</label>
+            <textarea id="fcContent" placeholder="Cole aqui o texto ou tópicos que deseja transformar em flashcards..."></textarea>
+          </div>
+          <div class="fc-actions">
+            <button class="btn btn-ghost" id="fcClearBtn">Limpar</button>
+            <button class="btn btn-primary" id="fcBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 3v1m0 16v1M3 12h1m16 0h1m-3.3-6.7-.7.7M6 6l-.7-.7M6 18l-.7.7M18 18l.7.7"/><circle cx="12" cy="12" r="4"/></svg>
+              Gerar Flashcards
+            </button>
+          </div>
+        </div>
+
+        <div class="fc-results">
+          <div class="cards-grid" id="cardsGrid">
+            <div class="fc-placeholder" id="fcPlaceholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+              <span>Seus flashcards aparecerão aqui</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
 
 <div id="toast"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <script src="app.js"></script>
 </body>
 </html>
-
