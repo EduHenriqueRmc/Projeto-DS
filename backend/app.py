@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
-load_dotenv() 
+load_dotenv()
+
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from routes.chat import chat_bp

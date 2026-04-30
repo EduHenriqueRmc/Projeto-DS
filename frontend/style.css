@@ -574,6 +574,15 @@ main {
 .msg-avatar.ai   { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(79,124,255,.2); }
 .msg-avatar.user { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(155,109,255,.2); }
 
+.msg.ai p {
+  margin-bottom: 0.6rem;
+  line-height: 1.7;
+}
+
+.msg.ai p:last-child { margin-bottom: 0; }
+
+.msg.ai strong { color: #fff; font-weight: 600; }
+
 .msg {
   max-width: 72%;
   padding: .75rem 1.1rem;
