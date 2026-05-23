@@ -1,0 +1,128 @@
+{
+  "decks": [
+    {
+      "title": "Revolução Francesa",
+      "cards": [
+        {
+          "pergunta": "Em que período ocorreu a Revolução Francesa?",
+          "resposta": "1789-1799"
+        },
+        {
+          "pergunta": "Quais foram as causas principais da Revolução Francesa?",
+          "resposta": "Crise financeira, desigualdade social e influência do Iluminismo"
+        },
+        {
+          "pergunta": "Quais foram as quatro fases principais da Revolução Francesa?",
+          "resposta": "Fase da Assembleia Nacional, Fase da Monarquia Constitucional, Fase do Terror e Fase do Diretório"
+        },
+        {
+          "pergunta": "O que foi a Declaração dos Direitos do Homem e do Cidadão?",
+          "resposta": "Um documento aprovado em 1789 que estabeleceu os princípios de liberdade, igualdade e direitos humanos"
+        },
+        {
+          "pergunta": "Quais foram as consequências principais da Revolução Francesa?",
+          "resposta": "Fim da monarquia absoluta, estabelecimento da Declaração dos Direitos do Homem e influência na política mundial"
+        },
+        {
+          "pergunta": "Quem liderou o Comitê de Salvação Pública durante a Fase do Terror?",
+          "resposta": "Maximilien Robespierre"
+        },
+        {
+          "pergunta": "Quem ascendeu ao poder no final da Revolução Francesa?",
+          "resposta": "Napoleão Bonaparte"
+        },
+        {
+          "pergunta": "Qual foi o impacto da Revolução Francesa na sociedade francesa?",
+          "resposta": "Transformação política, social e econômica, com o estabelecimento de uma república e a abolição do feudalismo"
+        }
+      ]
+    },
+    {
+      "title": "Revolução Francesa",
+      "cards": [
+        {
+          "pergunta": "Qual foi o período em que ocorreu a Revolução Francesa?",
+          "resposta": "1789 a 1799"
+        },
+        {
+          "pergunta": "Quais foram as três principais causas da Revolução Francesa?",
+          "resposta": "Desigualdade social e econômica, crise financeira e influência do Iluminismo"
+        },
+        {
+          "pergunta": "Quais foram as etapas da Revolução Francesa?",
+          "resposta": "Etapa liberal (1789-1791), etapa radical (1792-1794) e etapa napoleônica (1799-1804)"
+        },
+        {
+          "pergunta": "O que foi a Declaração dos Direitos do Homem e do Cidadão?",
+          "resposta": "Um documento que estabeleceu os princípios de liberdade, igualdade e fraternidade"
+        },
+        {
+          "pergunta": "Quem foi o líder do grupo político jacobino durante a Revolução Francesa?",
+          "resposta": "Maximilien Robespierre"
+        },
+        {
+          "pergunta": "Qual foi o resultado final da Revolução Francesa?",
+          "resposta": "A ascensão de Napoleão Bonaparte e o estabelecimento do Império Francês"
+        },
+        {
+          "pergunta": "Quais foram as consequências mais significativas da Revolução Francesa?",
+          "resposta": "Fim da monarquia absoluta, estabelecimento da república e difusão das ideias iluministas"
+        },
+        {
+          "pergunta": "Qual foi o impacto da Revolução Francesa na história mundial?",
+          "resposta": "Transformou a sociedade francesa e teve um impacto significativo na formação da moderna sociedade ocidental"
+        },
+        {
+          "pergunta": "O que foi o terceiro estado na sociedade francesa antes da Revolução?",
+          "resposta": "Comerciantes, artesãos e camponeses, que não tinham direitos políticos e eram submetidos a impostos altos"
+        }
+      ]
+    },
+    {
+      "title": "Revolução Francesa",
+      "cards": [
+        {
+          "pergunta": "Qual foi o período em que ocorreu a Revolução Francesa?",
+          "resposta": "1789-1799"
+        },
+        {
+          "pergunta": "Quais foram as principais causas da Revolução Francesa?",
+          "resposta": "Crise financeira, desigualdade social, falta de liberdade e influência do Iluminismo"
+        },
+        {
+          "pergunta": "O que foi a Assembleia Nacional e qual foi seu papel na Revolução Francesa?",
+          "resposta": "A Assembleia Nacional foi uma assembleia representativa que adotou a Declaração dos Direitos do Homem e do Cidadão e começou a implementar reformas"
+        },
+        {
+          "pergunta": "Quem foi o líder do regime de terror durante a Revolução Francesa?",
+          "resposta": "Maximilien Robespierre"
+        },
+        {
+          "pergunta": "Qual foi o resultado da Revolução Francesa em termos de governo?",
+          "resposta": "A Revolução Francesa marcou o fim da monarquia absoluta e o início da era das democracias representativas"
+        },
+        {
+          "pergunta": "O que foi a Declaração dos Direitos do Homem e do Cidadão?",
+          "resposta": "Um documento que estabeleceu os princípios da liberdade, igualdade e fraternidade"
+        },
+        {
+          "pergunta": "Qual foi a influência da Revolução Francesa na história mundial?",
+          "resposta": "A Revolução Francesa inspirou movimentos de independência e democracia em todo o mundo"
+        },
+        {
+          "pergunta": "O que foi o Diretório e como ele governou a França?",
+          "resposta": "O Diretório foi um conselho de cinco membros que governou a França após a queda de Robespierre, mas foi marcado por corrupção e instabilidade"
+        },
+        {
+          "pergunta": "Qual foi a importância da convocação dos Estados Gerais em 1789?",
+          "resposta": "A convocação dos Estados Gerais marcou o início da Revolução Francesa"
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "sessoes": 0,
+    "flash_decks": 3,
+    "retencao": 0
+  }
+}

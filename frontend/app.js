@@ -1,12 +1,51 @@
 const API = 'http://localhost:5000/api';
 
 /* ─────────────────────────────────────────────────────
+   AUTH GUARD
+   ⚙️ BACKEND: troque a verificação do token por uma
+   chamada real ao servidor (ex: GET /api/auth/me)
+   para validar o JWT antes de renderizar a página.
+───────────────────────────────────────────────────── */
+(function authGuard() {
+  const token = localStorage.getItem('cintetize_token');
+
+  // ⚙️ BACKEND: substitua esta verificação local por uma
+  // chamada autenticada ao servidor antes de liberar o acesso.
+  if (!token) {
+    window.location.replace('login.html');
+    return;
+  }
+
+  // Exibe nome do usuário logado no topbar (se disponível)
+  try {
+    const user = JSON.parse(localStorage.getItem('cintetize_user') || '{}');
+    if (user.name) {
+      const avatar = document.querySelector('.avatar');
+      if (avatar) {
+        avatar.setAttribute('title', user.name);
+        avatar.setAttribute('aria-label', `Usuário: ${user.name}`);
+      }
+    }
+  } catch { /* seguro ignorar */ }
+})();
+
+/* Logout — chame logout() de qualquer lugar para encerrar sessão */
+function logout() {
+  // ⚙️ BACKEND: faça POST /api/auth/logout para invalidar o token no servidor
+  localStorage.removeItem('cintetize_token');
+  localStorage.removeItem('cintetize_user');
+  window.location.href = 'login.html';
+}
+
+/* ─────────────────────────────────────────────────────
    NAVIGATION
 ───────────────────────────────────────────────────── */
 const pageTitles = {
   dashboard:  'Dashboard',
   chat:       'AI Assistant',
   flashcards: 'Flashcards',
+  planner:    'Cronograma',
+  environments: 'Ambientes de Estudo',
 };
 
 function switchTab(tab) {
@@ -338,3 +377,314 @@ function renderActivity() {
    INIT
 ───────────────────────────────────────────────────── */
 loadDashboard();
+
+/* ─────────────────────────────────────────────────────
+   CRONOGRAMA SEMANAL
+───────────────────────────────────────────────────── */
+const daysOfWeek = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+
+// Estado global do cronograma (começa vazio)
+let plannerTasks = {
+  'Seg': [], 'Ter': [], 'Qua': [], 'Qui': [], 'Sex': [], 'Sáb': [], 'Dom': []
+};
+
+// Constrói as colunas vazias
+function initPlanner() {
+  const grid = document.getElementById('plannerGrid');
+  if (!grid) return;
+
+  grid.innerHTML = daysOfWeek.map(day => `
+    <div class="planner-day" data-day="${day}">
+      <div class="day-name">${day}</div>
+      <div class="day-content" id="day-${day}"></div>
+    </div>
+  `).join('');
+  
+  renderPlanner();
+}
+
+// Renderiza os blocos atuais baseados na variável plannerTasks
+function renderPlanner() {
+  daysOfWeek.forEach(day => {
+    const container = document.getElementById(`day-${day}`);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (plannerTasks[day] && plannerTasks[day].length > 0) {
+      plannerTasks[day].forEach((t, index) => {
+        container.innerHTML += `
+          <div class="planner-task ${t.color}">
+            <button class="task-delete-btn" data-day="${day}" data-index="${index}" title="Excluir Bloco">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <span class="task-time">${t.time}</span>
+            <span class="task-title">${t.title}</span>
+          </div>
+        `;
+      });
+    } else {
+      container.innerHTML = `<span style="color: var(--muted); font-size: 0.75rem; text-align: center; display: block; margin-top: 1rem;">Livre</span>`;
+    }
+  });
+}
+
+// Função para excluir um bloco específico
+function deletePlannerBlock(day, index) {
+    plannerTasks[day].splice(index, 1); // Remove do array global usando o índice
+    renderPlanner(); // Recarrega a visualização da semana
+    showToast('Bloco de estudo removido.', 'ok');
+
+}
+
+// Modal Logic
+const plannerModal = document.getElementById('plannerModal');
+
+function openPlannerModal() {
+  document.getElementById('planTitle').value = '';
+  document.getElementById('planTime').value = '';
+  document.getElementById('planDay').value = 'Seg';
+  document.getElementById('planColor').value = 'task-blue';
+  
+  plannerModal.classList.add('show');
+  document.getElementById('planTitle').focus();
+}
+
+function closePlannerModal() {
+  plannerModal.classList.remove('show');
+}
+
+function saveManualBlock() {
+  const title = document.getElementById('planTitle').value.trim();
+  const time = document.getElementById('planTime').value.trim();
+  const day = document.getElementById('planDay').value;
+  const color = document.getElementById('planColor').value;
+
+  if (!title || !time) {
+    showToast('Preencha o título e o horário.', 'err');
+    return;
+  }
+
+  plannerTasks[day].push({ time, title, color });
+  plannerTasks[day].sort((a, b) => a.time.localeCompare(b.time));
+
+  renderPlanner();
+  closePlannerModal();
+  showToast('Bloco adicionado com sucesso!', 'ok');
+}
+
+// Simulação de IA (Atualiza o estado global)
+async function generateAIPlanner() {
+  const btn = document.getElementById('aiPlannerBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Gerando...';
+
+  await new Promise(r => setTimeout(r, 1600));
+
+  plannerTasks = {
+    'Seg': [{ time: '08:00 - 10:00', title: 'Estudar Limites e Teorema do Confronto', color: 'task-purple' }],
+    'Ter': [{ time: '09:00 - 12:00', title: 'Limpeza de Dados Financeiros (Pandas)', color: 'task-green' }],
+    'Qua': [{ time: '10:00 - 12:00', title: 'Revisar Arquitetura e Pipelines', color: 'task-purple' }],
+    'Qui': [{ time: '14:00 - 17:00', title: 'Otimização de sistema Ubuntu', color: 'task-green' }],
+    'Sex': [{ time: '10:00 - 12:00', title: 'Benchmarking de Hardware', color: 'task-green' }],
+    'Sáb': [{ time: '10:00 - 12:00', title: 'Reunião com grupo do CITi', color: 'task-blue' }],
+    'Dom': []
+  };
+
+  renderPlanner();
+  addActivity('Cronograma otimizado pela IA', 'green');
+  showToast('Sua semana foi planejada! 📅', 'ok');
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 3v1m0 16v1M3 12h1m16 0h1m-3.3-6.7-.7.7M6 6l-.7-.7M6 18l-.7.7M18 18l.7.7"/><circle cx="12" cy="12" r="4"/></svg> Gerar com IA`;
+}
+
+// Listeners do Cronograma
+document.getElementById('aiPlannerBtn')?.addEventListener('click', generateAIPlanner);
+document.getElementById('addManualBtn')?.addEventListener('click', openPlannerModal);
+
+// LISTENER ATUALIZADO: Captura cliques nos botões de excluir dentro do Grid do Cronograma
+document.getElementById('plannerGrid')?.addEventListener('click', (e) => {
+  const deleteBtn = e.target.closest('.task-delete-btn');
+  if (deleteBtn) {
+    const day = deleteBtn.dataset.day;
+    const index = parseInt(deleteBtn.dataset.index, 10);
+    deletePlannerBlock(day, index);
+  }
+});
+
+// Listeners do Modal
+document.getElementById('closeModalBtn')?.addEventListener('click', closePlannerModal);
+document.getElementById('cancelModalBtn')?.addEventListener('click', closePlannerModal);
+document.getElementById('saveBlockBtn')?.addEventListener('click', saveManualBlock);
+
+plannerModal?.addEventListener('click', (e) => {
+  if (e.target === plannerModal) closePlannerModal();
+});
+
+// Inicia o render
+initPlanner();
+
+/* ─────────────────────────────────────────────────────
+   AMBIENTES DE ESTUDO
+───────────────────────────────────────────────────── */
+let environmentsList = [
+  { type: 'notion', title: 'Notion Central', url: 'https://notion.so' },
+  { type: 'drive', title: 'Google Drive Integrado', url: 'https://drive.google.com' },
+  { type: 'youtube', title: 'Aulas Complementares', url: 'https://youtube.com' }
+];
+
+// Mapeamento exato de ícones wireframe conforme solicitado
+const envIcons = {
+  notion: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="19" x2="15" y2="19"/></svg>`,
+  drive: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22"/><path d="M12 2v20"/></svg>`,
+  youtube: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="4"/><polygon points="10 9 15 12 10 15"/></svg>`,
+  custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>` // Livro aberto
+};
+
+const envTypeLabels = {
+  notion: 'Notion',
+  drive: 'Google Drive',
+  youtube: 'YouTube',
+  custom: 'Link Personalizado'
+};
+
+// Variável para rastrear se estamos editando (-1 significa criação nova)
+let envEditIndex = -1;
+
+function renderEnvironments() {
+  const grid = document.getElementById('envGrid');
+  if (!grid) return;
+
+  if (environmentsList.length === 0) {
+    grid.innerHTML = `
+      <div class="fc-placeholder" style="grid-column: 1 / -1; width: 100%;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span>Nenhum ambiente de estudos fixado. Crie um ao lado!</span>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = environmentsList.map((env, index) => {
+    const finalUrl = env.url.startsWith('http') ? env.url : `https://${env.url}`;
+    
+    return `
+      <div class="env-card">
+        <div class="env-card-top">
+          <div class="env-card-icon ${env.type}">
+            ${envIcons[env.type] || envIcons.custom}
+          </div>
+          <div class="env-card-info">
+            <div class="env-card-title">${env.title}</div>
+            <div class="env-card-type">${envTypeLabels[env.type] || 'Outro'}</div>
+          </div>
+        </div>
+        <div class="env-card-actions-wrapper">
+          <div style="display: flex; gap: 0.25rem;">
+            <button class="env-edit-btn" data-index="${index}" title="Editar Ambiente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="env-delete-btn" data-index="${index}" title="Excluir Ambiente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <a href="${finalUrl}" target="_blank" class="env-card-action">
+            Acessar
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function addEnvironmentLink() {
+  const type  = document.getElementById('envType').value;
+  const title = document.getElementById('envTitle').value.trim();
+  const url   = document.getElementById('envUrl').value.trim();
+
+  if (!title || !url) {
+    showToast('Por favor, informe um título e uma URL válida.', 'err');
+    return;
+  }
+
+  if (envEditIndex > -1) {
+    // Atualiza o ambiente existente
+    environmentsList[envEditIndex] = { type, title, url };
+    showToast('Ambiente atualizado com sucesso! ✏️', 'ok');
+  } else {
+    // Insere um novo ambiente
+    environmentsList.push({ type, title, url });
+    addActivity(`Ambiente "${title}" integrado`, type === 'youtube' ? 'purple' : 'blue');
+    showToast('Plataforma adicionada com sucesso! 🚀', 'ok');
+  }
+
+  resetEnvForm();
+  renderEnvironments();
+}
+
+function startEditEnv(index) {
+  envEditIndex = index;
+  const env = environmentsList[index];
+
+  // Preenche o formulário
+  document.getElementById('envType').value = env.type;
+  document.getElementById('envTitle').value = env.title;
+  document.getElementById('envUrl').value = env.url;
+
+  // Altera o texto visual do botão principal
+  const btn = document.getElementById('envAddBtn');
+  btn.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
+    Salvar Alterações
+  `;
+  
+  // Foca no campo de título automaticamente
+  document.getElementById('envTitle').focus();
+}
+
+function resetEnvForm() {
+  envEditIndex = -1;
+  document.getElementById('envTitle').value = '';
+  document.getElementById('envUrl').value = '';
+  
+  const btn = document.getElementById('envAddBtn');
+  btn.textContent = 'Fixar Ambiente';
+}
+
+// Listeners do formulário
+document.getElementById('envAddBtn')?.addEventListener('click', addEnvironmentLink);
+document.getElementById('envClearBtn')?.addEventListener('click', resetEnvForm);
+
+// Delegação de eventos para os botões de editar dentro do Grid
+document.getElementById('envGrid')?.addEventListener('click', (e) => {
+  const editBtn = e.target.closest('.env-edit-btn');
+  const deleteBtn = e.target.closest('.env-delete-btn');
+  
+  if (editBtn) {
+    const index = parseInt(editBtn.dataset.index, 10);
+    startEditEnv(index);
+  } else if (deleteBtn) {
+    const index = parseInt(deleteBtn.dataset.index, 10);
+    deleteEnv(index);
+  }
+});
+
+function deleteEnv(index) {
+  
+    environmentsList.splice(index, 1); // Remove o item do array
+    
+    // Tratamento caso o usuário exclua o item que está sendo editado no momento
+    if (envEditIndex === index) {
+      resetEnvForm();
+    } else if (envEditIndex > index) {
+      envEditIndex--; // Ajusta o índice de edição se um item anterior for removido
+    }
+    
+    renderEnvironments();
+    showToast('Ambiente excluído.', 'ok');
+  
+}
+
+// Inicialização imediata
+renderEnvironments();
