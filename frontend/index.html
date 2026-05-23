@@ -29,6 +29,14 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
       <span>Flashcards</span>
     </button>
+    <button class="nav-item" data-tab="planner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Cronograma</span>
+    </button>
+    <button class="nav-item" data-tab="environments">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/><path d="M6 6h.01M10 6h.01M14 6h.01"/></svg>
+      <span>Ambientes</span>
+    </button>
   </nav>
 
   <div class="sidebar-footer">
@@ -223,12 +231,121 @@
         </div>
       </div>
     </div>
+    <div id="tab-planner" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h1 class="panel-title">Cronograma Semanal</h1>
+          <p class="panel-sub">Organize sua rotina manualmente ou deixe a IA otimizar seus horários</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-ghost" id="addManualBtn">
+            + Adicionar Bloco
+          </button>
+          <button class="btn btn-primary" id="aiPlannerBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 3v1m0 16v1M3 12h1m16 0h1m-3.3-6.7-.7.7M6 6l-.7-.7M6 18l-.7.7M18 18l.7.7"/><circle cx="12" cy="12" r="4"/></svg>
+            Gerar com IA
+          </button>
+        </div>
+      </div>
 
+      <div class="planner-grid" id="plannerGrid">
+        </div>
+    </div>
+    <div id="tab-environments" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h1 class="panel-title">Ambientes de Estudo</h1>
+          <p class="panel-sub">Centralize suas plataformas de apoio ou organize links de atalhos personalizados</p>
+        </div>
+      </div>
+
+      <div class="env-layout">
+        <div class="env-form-card">
+          <div class="env-form-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg>
+            Adicionar Novo Link
+          </div>
+          <div class="env-field">
+            <label>Plataforma / Tipo</label>
+            <select id="envType" class="env-select">
+              <option value="notion">Notion</option>
+              <option value="drive">Google Drive</option>
+              <option value="youtube">YouTube</option>
+              <option value="custom">Outro</option>
+            </select>
+          </div>
+          <div class="env-field">
+            <label>Título do Atalho</label>
+            <input type="text" id="envTitle" placeholder="Ex: Meu caderno de notas ou Playlist"/>
+          </div>
+          <div class="env-field">
+            <label>URL de Redirecionamento</label>
+            <input type="text" id="envUrl" placeholder="Ex: https://notion.so/..."/>
+          </div>
+          <div class="env-actions">
+            <button class="btn btn-ghost" id="envClearBtn">Limpar</button>
+            <button class="btn btn-primary" id="envAddBtn">Fixar Ambiente</button>
+          </div>
+        </div>
+
+        <div class="env-results">
+          <div class="env-grid" id="envGrid">
+            </div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
 <div id="toast"></div>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="modal-overlay" id="plannerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="font-family: var(--font-head); font-size: 1.1rem; color: var(--text);">Novo Bloco de Estudo</h3>
+      <button class="close-modal" id="closeModalBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="fc-field">
+        <label>Título / Matéria</label>
+        <input type="text" id="planTitle" placeholder="Ex: Análise de Dados com Pandas" autocomplete="off"/>
+      </div>
+      <div style="display: flex; gap: 1rem;">
+        <div class="fc-field" style="flex: 1;">
+          <label>Dia da Semana</label>
+          <select id="planDay" class="env-select">
+            <option value="Seg">Segunda-feira</option>
+            <option value="Ter">Terça-feira</option>
+            <option value="Qua">Quarta-feira</option>
+            <option value="Qui">Quinta-feira</option>
+            <option value="Sex">Sexta-feira</option>
+            <option value="Sáb">Sábado</option>
+            <option value="Dom">Domingo</option>
+          </select>
+        </div>
+        <div class="fc-field" style="flex: 1;">
+          <label>Horário</label>
+          <input type="text" id="planTime" placeholder="Ex: 14:00 - 16:00" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="fc-field">
+        <label>Cor do Bloco</label>
+        <select id="planColor" class="env-select">
+          <option value="task-blue">Azul (Estudo Padrão)</option>
+          <option value="task-purple">Roxo (Revisão / Flashcards)</option>
+          <option value="task-green">Verde (Prática / Projetos)</option>
+        </select>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.5rem;">
+      <button class="btn btn-ghost" id="cancelModalBtn">Cancelar</button>
+      <button class="btn btn-primary" id="saveBlockBtn">Salvar Bloco</button>
+    </div>
+  </div>
+</div>
 
 <script src="app.js"></script>
 </body>
