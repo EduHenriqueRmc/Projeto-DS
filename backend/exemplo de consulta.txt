@@ -1,0 +1,27 @@
+##exemplos de consultas##
+
+
+##Busca historico de conversas do user
+
+SELECT c.id, c.title, c.updated_at, COUNT(m.id) as message_count
+FROM conversations c
+LEFT JOIN messages m ON c.id = m.conversation_id
+WHERE c.user_id = ? AND c.is_archived = FALSE
+GROUP BY c.id
+ORDER BY c.updated_at DESC;
+
+##carregar uma conversa especifica
+
+SELECT m.role, m.content, m.created_at
+FROM messages m
+WHERE m.conversation_id = ?
+ORDER BY m.created_at ASC
+LIMIT 50;
+
+##Criar nova conversa com primeira msg (transação)
+
+START TRANSATION;
+INSERT INTO conversations (user_id, title) VALUES (?, ?);
+INSERT INTO messages (conversation_id, user_id, role, content)
+VALUES (LAST_INSERT_ID(), ?, 'user', ?);
+COMMIT;
