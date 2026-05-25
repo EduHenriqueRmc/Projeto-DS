@@ -551,6 +551,13 @@ main {
   background: var(--blue-dim);
 }
 
+.chat-disclaimer {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+}
+
 /* Chat messages */
 .msg-row {
   display: flex;
@@ -601,6 +608,30 @@ main {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
+}
+
+/* Formatação do Markdown gerado pela IA */
+.msg.ai p {
+  margin-bottom: 0.85rem;
+  line-height: 1.65;
+}
+
+.msg.ai p:last-child {
+  margin-bottom: 0;
+}
+
+.msg.ai ul, .msg.ai ol {
+  margin-left: 1.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.msg.ai li {
+  margin-bottom: 0.3rem;
+}
+
+.msg.ai strong {
+  color: #fff;
+  font-weight: 600;
 }
 
 .msg.thinking {
