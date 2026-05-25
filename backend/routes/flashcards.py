@@ -8,8 +8,14 @@ flashcards_bp = Blueprint('flashcards', __name__)
 @flashcards_bp.route('/flashcards/generate', methods=['POST'])
 def generate_flashcards():
     data = request.get_json()
+    # NOVO: Puxando o ID do usuário que o frontend deve enviar
+    user_id = data.get('user_id') 
     content = data.get('content', '').strip()
     title = data.get('title', 'Baralho').strip()
+
+    # NOVO: Trava de segurança para usuários não logados
+    if not user_id:
+        return jsonify({'error': 'Usuário não autenticado. Faça login para salvar flashcards.'}), 401
 
     if not content:
         return jsonify({'error': 'Conteúdo obrigatório'}), 400
@@ -23,16 +29,23 @@ def generate_flashcards():
 
     try:
         cards = ask_llama(prompt, json_mode=True)
-        save_deck(title, cards)
+        # ATUALIZADO: Agora enviamos o user_id para a função do banco de dados
+        save_deck(user_id, title, cards) 
         return jsonify({'title': title, 'flashcards': cards})
     except Exception as e:
         return jsonify({'error': f'Erro ao gerar flashcards: {str(e)}'}), 500
 
 @flashcards_bp.route('/flashcards', methods=['GET'])
 def list_flashcards():
+    # NOVO: O frontend vai mandar o ID na URL (ex: /api/flashcards?user_id=1)
+    user_id = request.args.get('user_id', type=int)
+    
+    if not user_id:
+        return jsonify({'error': 'ID do usuário não fornecido'}), 400
+
     try:
-        decks = get_all_decks()
+        # ATUALIZADO: Buscando apenas os decks daquele usuário específico
+        decks = get_all_decks(user_id) 
         return jsonify({'decks': decks})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-

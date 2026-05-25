@@ -6,6 +6,11 @@ const API = 'http://localhost:5000/api';
    chamada real ao servidor (ex: GET /api/auth/me)
    para validar o JWT antes de renderizar a página.
 ───────────────────────────────────────────────────── */
+
+// Pega os dados do usuário logado salvos pelo login.js
+const currentUser = JSON.parse(localStorage.getItem('cintetize_user'));
+const userId = currentUser ? currentUser.id : null;
+
 (function authGuard() {
   const token = localStorage.getItem('cintetize_token');
 
@@ -118,7 +123,12 @@ function appendMsg(text, role) {
     avatar.textContent = 'AI';
     avatar.className = 'msg-avatar ai';
   } else {
-    bubble.textContent = text;
+    // Se for o AI, converte o Markdown para HTML. Se for o usuário, mantém texto puro.
+    if (role === 'ai') {
+      bubble.innerHTML = marked.parse(text);
+    } else {
+      bubble.textContent = text;
+    }
   }
 
   // user: avatar after bubble; ai: avatar before
@@ -214,6 +224,12 @@ async function generateFlashcards() {
   const btn     = document.getElementById('fcBtn');
   const grid    = document.getElementById('cardsGrid');
 
+  // 1. Trava de segurança: impede gerar se não estiver logado
+  if (!userId) { 
+    showToast('Você precisa fazer login para salvar flashcards.', 'err'); 
+    return; 
+  }
+
   if (!content) { showToast('Insira o conteúdo base.', 'err'); return; }
 
   btn.disabled = true;
@@ -221,11 +237,17 @@ async function generateFlashcards() {
   grid.innerHTML = '';
 
   try {
+    // 2. Envia o user_id para a rota que atualizamos no backend
     const res  = await fetch(`${API}/flashcards/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title || 'Baralho', content }),
+      body: JSON.stringify({ 
+        user_id: userId, // <-- Sincronizando com o banco!
+        title: title || 'Baralho', 
+        content 
+      }),
     });
+    
     const data = await res.json();
 
     if (data.flashcards && Array.isArray(data.flashcards)) {
@@ -263,11 +285,12 @@ async function generateFlashcards() {
       });
 
       addActivity(`Baralho "${title || 'Baralho'}" criado`, 'purple');
-      showToast(`${data.flashcards.length} flashcards gerados! 🎉`);
+      showToast(`${data.flashcards.length} flashcards gerados e salvos! 🎉`);
     } else {
-      showToast('Erro ao gerar flashcards.', 'err');
+      showToast(data.error || 'Erro ao gerar flashcards.', 'err');
     }
-  } catch {
+  } catch (error) {
+    console.error(error);
     showToast('Não foi possível conectar ao servidor.', 'err');
   } finally {
     btn.disabled = false;
@@ -383,13 +406,13 @@ loadDashboard();
 ───────────────────────────────────────────────────── */
 const daysOfWeek = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-// Estado global do cronograma (começa vazio)
+// Estado global do cronograma (carrega vazio e preenche via fetch)
 let plannerTasks = {
   'Seg': [], 'Ter': [], 'Qua': [], 'Qui': [], 'Sex': [], 'Sáb': [], 'Dom': []
 };
 
-// Constrói as colunas vazias
-function initPlanner() {
+// Constrói as colunas vazias e busca os dados salvos do usuário logado
+async function initPlanner() {
   const grid = document.getElementById('plannerGrid');
   if (!grid) return;
 
@@ -399,6 +422,21 @@ function initPlanner() {
       <div class="day-content" id="day-${day}"></div>
     </div>
   `).join('');
+  
+  // Busca os blocos reais salvos no banco de dados para este usuário específico
+  if (userId) {
+    try {
+      const res = await fetch(`${API}/planner?user_id=${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.planner) {
+          plannerTasks = data.planner;
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao buscar cronograma:", err);
+    }
+  }
   
   renderPlanner();
 }
@@ -429,12 +467,26 @@ function renderPlanner() {
   });
 }
 
+// Envia o estado atual do planner para salvar no banco de dados
+async function syncPlanner() {
+  if (!userId) return;
+  try {
+    await fetch(`${API}/planner`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, planner: plannerTasks })
+    });
+  } catch (err) {
+    console.error("Erro ao sincronizar cronograma:", err);
+  }
+}
+
 // Função para excluir um bloco específico
 function deletePlannerBlock(day, index) {
-    plannerTasks[day].splice(index, 1); // Remove do array global usando o índice
-    renderPlanner(); // Recarrega a visualização da semana
-    showToast('Bloco de estudo removido.', 'ok');
-
+  plannerTasks[day].splice(index, 1);
+  renderPlanner();
+  syncPlanner(); // Sincroniza a remoção no db.json
+  showToast('Bloco de estudo removido.', 'ok');
 }
 
 // Modal Logic
@@ -469,41 +521,52 @@ function saveManualBlock() {
   plannerTasks[day].sort((a, b) => a.time.localeCompare(b.time));
 
   renderPlanner();
+  syncPlanner(); // Sincroniza a adição manual no db.json
   closePlannerModal();
   showToast('Bloco adicionado com sucesso!', 'ok');
 }
 
-// Simulação de IA (Atualiza o estado global)
+// Chamada à Inteligência Artificial do Groq integrada ao usuário
 async function generateAIPlanner() {
+  if (!userId) {
+    showToast('Usuário não autenticado.', 'err');
+    return;
+  }
+
   const btn = document.getElementById('aiPlannerBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Gerando...';
 
-  await new Promise(r => setTimeout(r, 1600));
+  try {
+    const res = await fetch(`${API}/planner/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId })
+    });
 
-  plannerTasks = {
-    'Seg': [{ time: '08:00 - 10:00', title: 'Estudar Limites e Teorema do Confronto', color: 'task-purple' }],
-    'Ter': [{ time: '09:00 - 12:00', title: 'Limpeza de Dados Financeiros (Pandas)', color: 'task-green' }],
-    'Qua': [{ time: '10:00 - 12:00', title: 'Revisar Arquitetura e Pipelines', color: 'task-purple' }],
-    'Qui': [{ time: '14:00 - 17:00', title: 'Otimização de sistema Ubuntu', color: 'task-green' }],
-    'Sex': [{ time: '10:00 - 12:00', title: 'Benchmarking de Hardware', color: 'task-green' }],
-    'Sáb': [{ time: '10:00 - 12:00', title: 'Reunião com grupo do CITi', color: 'task-blue' }],
-    'Dom': []
-  };
+    const data = await res.json();
 
-  renderPlanner();
-  addActivity('Cronograma otimizado pela IA', 'green');
-  showToast('Sua semana foi planejada! 📅', 'ok');
-
-  btn.disabled = false;
-  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 3v1m0 16v1M3 12h1m16 0h1m-3.3-6.7-.7.7M6 6l-.7-.7M6 18l-.7.7M18 18l.7.7"/><circle cx="12" cy="12" r="4"/></svg> Gerar com IA`;
+    if (res.ok && data.planner) {
+      plannerTasks = data.planner;
+      renderPlanner();
+      addActivity('Cronograma otimizado pela IA', 'green');
+      showToast('Sua semana foi planejada! 📅', 'ok');
+    } else {
+      showToast('Erro ao gerar cronograma.', 'err');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Não foi possível conectar ao servidor.', 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 3v1m0 16v1M3 12h1m16 0h1m-3.3-6.7-.7.7M6 6l-.7-.7M6 18l-.7.7M18 18l.7.7"/><circle cx="12" cy="12" r="4"/></svg> Gerar com IA`;
+  }
 }
 
 // Listeners do Cronograma
 document.getElementById('aiPlannerBtn')?.addEventListener('click', generateAIPlanner);
 document.getElementById('addManualBtn')?.addEventListener('click', openPlannerModal);
 
-// LISTENER ATUALIZADO: Captura cliques nos botões de excluir dentro do Grid do Cronograma
 document.getElementById('plannerGrid')?.addEventListener('click', (e) => {
   const deleteBtn = e.target.closest('.task-delete-btn');
   if (deleteBtn) {
@@ -522,17 +585,13 @@ plannerModal?.addEventListener('click', (e) => {
   if (e.target === plannerModal) closePlannerModal();
 });
 
-// Inicia o render
+// Inicia o render carregando os dados do usuário
 initPlanner();
 
 /* ─────────────────────────────────────────────────────
    AMBIENTES DE ESTUDO
 ───────────────────────────────────────────────────── */
-let environmentsList = [
-  { type: 'notion', title: 'Notion Central', url: 'https://notion.so' },
-  { type: 'drive', title: 'Google Drive Integrado', url: 'https://drive.google.com' },
-  { type: 'youtube', title: 'Aulas Complementares', url: 'https://youtube.com' }
-];
+let environmentsList = [];
 
 // Mapeamento exato de ícones wireframe conforme solicitado
 const envIcons = {
@@ -549,8 +608,25 @@ const envTypeLabels = {
   custom: 'Link Personalizado'
 };
 
-// Variável para rastrear se estamos editando (-1 significa criação nova)
 let envEditIndex = -1;
+
+// Busca os dados reais salvos no banco para este usuário
+async function initEnvironments() {
+  if (userId) {
+    try {
+      const res = await fetch(`${API}/environments?user_id=${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.environments) {
+          environmentsList = data.environments;
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao buscar ambientes:", err);
+    }
+  }
+  renderEnvironments();
+}
 
 function renderEnvironments() {
   const grid = document.getElementById('envGrid');
@@ -598,6 +674,20 @@ function renderEnvironments() {
   }).join('');
 }
 
+// Sincroniza o estado do array local com o db.json no backend
+async function syncEnvironments() {
+  if (!userId) return;
+  try {
+    await fetch(`${API}/environments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, environments: environmentsList })
+    });
+  } catch (err) {
+    console.error("Erro ao sincronizar ambientes:", err);
+  }
+}
+
 function addEnvironmentLink() {
   const type  = document.getElementById('envType').value;
   const title = document.getElementById('envTitle').value.trim();
@@ -609,11 +699,9 @@ function addEnvironmentLink() {
   }
 
   if (envEditIndex > -1) {
-    // Atualiza o ambiente existente
     environmentsList[envEditIndex] = { type, title, url };
     showToast('Ambiente atualizado com sucesso! ✏️', 'ok');
   } else {
-    // Insere um novo ambiente
     environmentsList.push({ type, title, url });
     addActivity(`Ambiente "${title}" integrado`, type === 'youtube' ? 'purple' : 'blue');
     showToast('Plataforma adicionada com sucesso! 🚀', 'ok');
@@ -621,25 +709,23 @@ function addEnvironmentLink() {
 
   resetEnvForm();
   renderEnvironments();
+  syncEnvironments(); // Salva a alteração no banco
 }
 
 function startEditEnv(index) {
   envEditIndex = index;
   const env = environmentsList[index];
 
-  // Preenche o formulário
   document.getElementById('envType').value = env.type;
   document.getElementById('envTitle').value = env.title;
   document.getElementById('envUrl').value = env.url;
 
-  // Altera o texto visual do botão principal
   const btn = document.getElementById('envAddBtn');
   btn.innerHTML = `
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
     Salvar Alterações
   `;
   
-  // Foca no campo de título automaticamente
   document.getElementById('envTitle').focus();
 }
 
@@ -652,11 +738,9 @@ function resetEnvForm() {
   btn.textContent = 'Fixar Ambiente';
 }
 
-// Listeners do formulário
 document.getElementById('envAddBtn')?.addEventListener('click', addEnvironmentLink);
 document.getElementById('envClearBtn')?.addEventListener('click', resetEnvForm);
 
-// Delegação de eventos para os botões de editar dentro do Grid
 document.getElementById('envGrid')?.addEventListener('click', (e) => {
   const editBtn = e.target.closest('.env-edit-btn');
   const deleteBtn = e.target.closest('.env-delete-btn');
@@ -671,20 +755,18 @@ document.getElementById('envGrid')?.addEventListener('click', (e) => {
 });
 
 function deleteEnv(index) {
+  environmentsList.splice(index, 1);
   
-    environmentsList.splice(index, 1); // Remove o item do array
-    
-    // Tratamento caso o usuário exclua o item que está sendo editado no momento
-    if (envEditIndex === index) {
-      resetEnvForm();
-    } else if (envEditIndex > index) {
-      envEditIndex--; // Ajusta o índice de edição se um item anterior for removido
-    }
-    
-    renderEnvironments();
-    showToast('Ambiente excluído.', 'ok');
+  if (envEditIndex === index) {
+    resetEnvForm();
+  } else if (envEditIndex > index) {
+    envEditIndex--;
+  }
   
+  renderEnvironments();
+  syncEnvironments(); // Salva a remoção no banco
+  showToast('Ambiente excluído.', 'ok');
 }
 
-// Inicialização imediata
-renderEnvironments();
+// Inicialização modificada para carregar do banco de dados
+initEnvironments();
