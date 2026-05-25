@@ -1,24 +1,3 @@
-/**
- * CIntetize — Auth Logic (login.js)
- *
- * ─── BACKEND INTEGRATION GUIDE ───────────────────────────────────────────────
- *
- *  Todos os pontos de integração estão marcados com o comentário:
- *    // ⚙️ BACKEND: <descrição>
- *
- *  Rotas esperadas no Flask:
- *    POST /api/auth/login          { email, password }     → { token, user }
- *    POST /api/auth/register       { name, email, password }→ { token, user }
- *    POST /api/auth/forgot-password{ email }               → { message }
- *    POST /api/auth/google                                  → { token, user }
- *    POST /api/auth/github                                  → { token, user }
- *
- *  O token JWT recebido deve ser salvo em localStorage com a chave "cintetize_token".
- *  O guard de auth em index.html verifica essa chave ao carregar a página.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
 const API = 'http://localhost:5000/api';
 
 /* ── UTILS ───────────────────────────────────────────── */
@@ -41,15 +20,15 @@ function setLoading(btn, loading) {
 function setError(containerId, msg) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  el.textContent = msg;
-  el.className   = msg ? 'field-group err' : 'field-group';
+  el.innerHTML = msg ? `<span style="color: var(--danger);">${msg}</span>` : '';
+  el.className = msg ? 'field-group err' : 'field-group';
 }
 
 function setSuccess(containerId, msg) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  el.textContent = msg;
-  el.className   = 'field-group ok';
+  el.innerHTML = `<span style="color: var(--green);">${msg}</span>`;
+  el.className = 'field-group ok';
 }
 
 function validateEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
@@ -132,7 +111,6 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   setLoading(btn, true);
 
   try {
-    // ⚙️ BACKEND: POST /api/auth/login — envia credenciais, recebe { token, user }
     const res  = await fetch(`${API}/auth/login`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -141,32 +119,25 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     const data = await res.json();
 
     if (!res.ok) {
-      // ⚙️ BACKEND: o servidor deve retornar { error: "mensagem" } em caso de erro
       setError('loginError', data.error || 'E-mail ou senha inválidos.');
       return;
     }
 
-    // ⚙️ BACKEND: salva o token JWT no localStorage para o guard de auth
     localStorage.setItem('cintetize_token', data.token);
     localStorage.setItem('cintetize_user',  JSON.stringify(data.user));
 
     showToast('Entrando... 🎓', 'ok');
     setTimeout(() => { window.location.href = 'index.html'; }, 700);
 
-  } catch {
-    /* ── MODO DEMO (sem backend) ── remova este bloco ao conectar o backend ── */
-    console.warn('[CIntetize] Backend não encontrado — usando modo demo.');
-    localStorage.setItem('cintetize_token', 'demo-token');
-    localStorage.setItem('cintetize_user',  JSON.stringify({ name: 'Estudante', email }));
-    showToast('Modo demo ativo 🎓', 'ok');
-    setTimeout(() => { window.location.href = 'index.html'; }, 700);
-    /* ── fim modo demo ─────────────────────────────────────────────────────── */
+  } catch (error) {
+    console.error("Erro no login:", error);
+    setError('loginError', 'Não foi possível conectar ao servidor.');
   } finally {
     setLoading(btn, false);
   }
 });
 
-/* ── SIGNUP ──────────────────────────────────────────── */
+/* ── SIGNUP (CADASTRO) ───────────────────────────────── */
 document.getElementById('signupBtn').addEventListener('click', async () => {
   const name     = document.getElementById('signupName').value.trim();
   const email    = document.getElementById('signupEmail').value.trim();
@@ -186,7 +157,6 @@ document.getElementById('signupBtn').addEventListener('click', async () => {
   setLoading(btn, true);
 
   try {
-    // ⚙️ BACKEND: POST /api/auth/register — cria conta, recebe { token, user }
     const res  = await fetch(`${API}/auth/register`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -199,21 +169,24 @@ document.getElementById('signupBtn').addEventListener('click', async () => {
       return;
     }
 
-    // ⚙️ BACKEND: salva o token e redireciona
-    localStorage.setItem('cintetize_token', data.token);
-    localStorage.setItem('cintetize_user',  JSON.stringify(data.user));
+    // Sucesso no cadastro
+    setSuccess('signupError', 'Conta criada com sucesso! Faça login para continuar.');
+    showToast('Conta criada! 🎉', 'ok');
+    
+    // Limpa o formulário
+    document.getElementById('signupName').value = '';
+    document.getElementById('signupEmail').value = '';
+    document.getElementById('signupPassword').value = '';
+    document.getElementById('signupConfirm').value = '';
+    document.getElementById('acceptTerms').checked = false;
+    strengthW.hidden = true;
 
-    showToast('Conta criada! Bem-vindo(a) 🎉', 'ok');
-    setTimeout(() => { window.location.href = 'index.html'; }, 800);
+    // Redireciona para a aba de login após 1.5 segundos para o usuário ler a mensagem
+    setTimeout(() => { activateTab('login'); }, 1500);
 
-  } catch {
-    /* ── MODO DEMO ── */
-    console.warn('[CIntetize] Backend não encontrado — usando modo demo.');
-    localStorage.setItem('cintetize_token', 'demo-token');
-    localStorage.setItem('cintetize_user',  JSON.stringify({ name, email }));
-    showToast('Conta criada! (modo demo) 🎉', 'ok');
-    setTimeout(() => { window.location.href = 'index.html'; }, 800);
-    /* ── fim modo demo ── */
+  } catch (error) {
+    console.error("Erro no cadastro:", error);
+    setError('signupError', 'Não foi possível conectar ao servidor.');
   } finally {
     setLoading(btn, false);
   }
@@ -247,7 +220,6 @@ document.getElementById('forgotBtn').addEventListener('click', async () => {
   setLoading(btn, true);
 
   try {
-    // ⚙️ BACKEND: POST /api/auth/forgot-password — envia link de redefinição
     const res  = await fetch(`${API}/auth/forgot-password`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -258,10 +230,9 @@ document.getElementById('forgotBtn').addEventListener('click', async () => {
     if (!res.ok) { setError('forgotMsg', data.error || 'Erro ao enviar e-mail.'); return; }
     setSuccess('forgotMsg', 'Link enviado! Verifique sua caixa de entrada.');
 
-  } catch {
-    /* ── MODO DEMO ── */
-    setSuccess('forgotMsg', 'Link enviado! (modo demo — verifique o console)');
-    /* ── fim modo demo ── */
+  } catch (error) {
+    console.error("Erro na recuperação:", error);
+    setError('forgotMsg', 'Não foi possível conectar ao servidor.');
   } finally {
     setLoading(btn, false);
   }
@@ -269,15 +240,11 @@ document.getElementById('forgotBtn').addEventListener('click', async () => {
 
 /* ── SOCIAL AUTH ─────────────────────────────────────── */
 document.getElementById('googleBtn').addEventListener('click', () => {
-  // ⚙️ BACKEND: redirecione para o OAuth do Google
-  // window.location.href = `${API}/auth/google`;
-  showToast('Google OAuth — conecte o backend para ativar.', 'err');
+  showToast('Autenticação Google será ativada em breve.', 'err');
 });
 
 document.getElementById('githubBtn').addEventListener('click', () => {
-  // ⚙️ BACKEND: redirecione para o OAuth do GitHub
-  // window.location.href = `${API}/auth/github`;
-  showToast('GitHub OAuth — conecte o backend para ativar.', 'err');
+  showToast('Autenticação GitHub será ativada em breve.', 'err');
 });
 
 /* ── ENTER KEY ───────────────────────────────────────── */
