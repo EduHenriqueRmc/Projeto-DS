@@ -296,3 +296,66 @@ def delete_annotation(user_id: int, annotation_id: int) -> bool:
 
     _save(db)
     return True
+
+def save_material(user_id: int, title: str, content: str, material_type: str = 'resumo') -> dict:
+    """Salva um material gerado por IA vinculado ao usuário."""
+    db = _load()
+ 
+    if 'ai_materials' not in db:
+        db['ai_materials'] = []
+ 
+    new_id = max((m['id'] for m in db['ai_materials']), default=0) + 1
+ 
+    new_material = {
+        "id": new_id,
+        "user_id": user_id,
+        "title": title,
+        "type": material_type,  # 'resumo', 'redação', 'exercícios'
+        "content": content,
+        "created_at": datetime.datetime.now().isoformat()
+    }
+ 
+    db['ai_materials'].append(new_material)
+    _save(db)
+    return new_material
+ 
+ 
+def get_all_materials(user_id: int) -> list:
+    """Retorna todos os materiais gerados pelo usuário (sem conteúdo para listagem leve)."""
+    db = _load()
+    all_materials = db.get('ai_materials', [])
+ 
+    return [
+        {k: v for k, v in m.items() if k != 'content'}
+        for m in all_materials
+        if m.get('user_id') == user_id
+    ]
+ 
+ 
+def get_material_content(user_id: int, material_id: int) -> dict | None:
+    """Retorna um material específico com conteúdo completo."""
+    db = _load()
+    for m in db.get('ai_materials', []):
+        if m.get('id') == material_id and m.get('user_id') == user_id:
+            return m
+    return None
+ 
+ 
+def delete_material(user_id: int, material_id: int) -> bool:
+    """Remove um material. Retorna True se removeu, False se não achou."""
+    db = _load()
+ 
+    if 'ai_materials' not in db:
+        return False
+ 
+    original_len = len(db['ai_materials'])
+    db['ai_materials'] = [
+        m for m in db['ai_materials']
+        if not (m.get('id') == material_id and m.get('user_id') == user_id)
+    ]
+ 
+    if len(db['ai_materials']) == original_len:
+        return False
+ 
+    _save(db)
+    return True
