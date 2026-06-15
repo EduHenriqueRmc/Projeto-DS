@@ -9,6 +9,8 @@ from routes.dashboard import dashboard_bp
 from routes.environments import envs_bp
 from routes.planner import planner_bp
 from routes.auth import auth_bp
+from routes.files import files_bp
+from routes.annotations import annotations_bp
 import os
 
 app = Flask(__name__, static_folder='../frontend')
@@ -21,6 +23,8 @@ app.register_blueprint(dashboard_bp, url_prefix='/api')
 app.register_blueprint(envs_bp, url_prefix='/api')
 app.register_blueprint(planner_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(files_bp, url_prefix='/api')
+app.register_blueprint(annotations_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
