@@ -1,5 +1,6 @@
 import json
 import os
+import datetime
 
 DB_FILE = os.path.join(os.path.dirname(__file__), 'db.json')
 
@@ -154,3 +155,144 @@ def get_user_by_email(email: str):
         if user['email'] == email:
             return user
     return None
+
+def save_file(user_id: int, filename: str, content: str, file_type: str = 'txt') -> dict:
+    """Salva um arquivo importado pelo usuário no banco de dados."""
+    db = _load()
+
+    if 'files' not in db:
+        db['files'] = []
+
+    # Gera um ID único simples baseado no tamanho atual da lista
+    new_id = max((f['id'] for f in db['files']), default=0) + 1
+
+    new_file = {
+        "id": new_id,
+        "user_id": user_id,
+        "filename": filename,
+        "type": file_type,
+        "content": content,
+        "created_at": datetime.datetime.now().isoformat()
+    }
+
+    db['files'].append(new_file)
+    _save(db)
+    return new_file
+
+
+def get_all_files(user_id: int) -> list:
+    """Retorna todos os arquivos importados de um usuário. O conteúdo é omitido para não sobrecarregar a listagem."""
+    db = _load()
+    all_files = db.get('files', [])
+
+    # Retorna metadados (sem o 'content') para a listagem ser leve
+    return [
+        {k: v for k, v in f.items() if k != 'content'}
+        for f in all_files
+        if f.get('user_id') == user_id
+    ]
+
+
+def get_file_content(user_id: int, file_id: int) -> dict | None:
+    """Retorna um arquivo específico com seu conteúdo completo."""
+    db = _load()
+    for f in db.get('files', []):
+        if f.get('id') == file_id and f.get('user_id') == user_id:
+            return f
+    return None
+
+
+def delete_file(user_id: int, file_id: int) -> bool:
+    """Remove um arquivo do banco. Retorna True se removeu, False se não achou."""
+    db = _load()
+
+    if 'files' not in db:
+        return False
+
+    original_len = len(db['files'])
+    # Mantém tudo EXCETO o arquivo cujo id bate E pertence ao usuário
+    db['files'] = [
+        f for f in db['files']
+        if not (f.get('id') == file_id and f.get('user_id') == user_id)
+    ]
+
+    if len(db['files']) == original_len:
+        return False  # Nada foi removido
+
+    _save(db)
+    return True
+
+
+# --- ANOTAÇÕES MANUAIS ---
+
+def save_annotation(user_id: int, text: str, file_id: int = None) -> dict:
+    """Salva uma anotação manual. Pode estar vinculada a um arquivo (file_id) ou ser solta."""
+    db = _load()
+
+    if 'annotations' not in db:
+        db['annotations'] = []
+
+    new_id = max((a['id'] for a in db['annotations']), default=0) + 1
+
+    new_annotation = {
+        "id": new_id,
+        "user_id": user_id,
+        "file_id": file_id,  # None = nota solta; int = vinculada a um arquivo
+        "text": text,
+        "created_at": datetime.datetime.now().isoformat(),
+        "updated_at": datetime.datetime.now().isoformat()
+    }
+
+    db['annotations'].append(new_annotation)
+    _save(db)
+    return new_annotation
+
+
+def get_annotations(user_id: int, file_id: int = None) -> list:
+    """
+    Retorna anotações do usuário.
+    Se file_id for informado, filtra apenas as anotações daquele arquivo.
+    """
+    db = _load()
+    all_annotations = db.get('annotations', [])
+
+    result = [a for a in all_annotations if a.get('user_id') == user_id]
+
+    if file_id is not None:
+        result = [a for a in result if a.get('file_id') == file_id]
+
+    return result
+
+
+def update_annotation(user_id: int, annotation_id: int, new_text: str) -> dict | None:
+    """Edita o texto de uma anotação existente. Retorna a anotação atualizada ou None."""
+    db = _load()
+
+    for a in db.get('annotations', []):
+        if a.get('id') == annotation_id and a.get('user_id') == user_id:
+            a['text'] = new_text
+            a['updated_at'] = datetime.datetime.now().isoformat()
+            _save(db)
+            return a
+
+    return None  # Não encontrou
+
+
+def delete_annotation(user_id: int, annotation_id: int) -> bool:
+    """Remove uma anotação. Retorna True se removeu, False se não achou."""
+    db = _load()
+
+    if 'annotations' not in db:
+        return False
+
+    original_len = len(db['annotations'])
+    db['annotations'] = [
+        a for a in db['annotations']
+        if not (a.get('id') == annotation_id and a.get('user_id') == user_id)
+    ]
+
+    if len(db['annotations']) == original_len:
+        return False
+
+    _save(db)
+    return True
