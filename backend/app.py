@@ -11,6 +11,7 @@ from routes.planner import planner_bp
 from routes.auth import auth_bp
 from routes.files import files_bp
 from routes.annotations import annotations_bp
+from routes.ai_materials import ai_materials_bp
 import os
 
 app = Flask(__name__, static_folder='../frontend')
@@ -25,6 +26,7 @@ app.register_blueprint(planner_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(files_bp, url_prefix='/api')
 app.register_blueprint(annotations_bp, url_prefix='/api')
+app.register_blueprint(ai_materials_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
