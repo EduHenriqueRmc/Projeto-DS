@@ -199,7 +199,6 @@ pytest test/ -v
 | Branch         | Finalidade                                           |
 | -------------- | ---------------------------------------------------- |
 | `main`         | Código estável — só recebe merge após revisão via PR |
-| `develop`      | Branch de integração contínua                        |
 | `feature/nome` | Desenvolvimento de novas funcionalidades             |
 | `fix/nome`     | Correções de bugs                                    |
 
@@ -223,10 +222,8 @@ git push origin feature/minha-feature
 | ----------- | ---------------------------------------- |
 | `feat:`     | Nova funcionalidade                      |
 | `fix:`      | Correção de bug                          |
-| `docs:`     | Alteração em documentação                |
 | `refactor:` | Refatoração sem mudança de comportamento |
 | `test:`     | Adição ou correção de testes             |
-| `chore:`    | Tarefas de manutenção (deps, configs)    |
 
 ---
 
