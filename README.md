@@ -234,9 +234,3 @@ git push origin feature/minha-feature
 - **[Flask-CORS](https://flask-cors.readthedocs.io/)** — controle de Cross-Origin Resource Sharing
 - **[python-dotenv](https://pypi.org/project/python-dotenv/)** — gerenciamento de variáveis de ambiente
 - **[Pytest](https://pytest.org/)** — framework de testes
-
----
-
-## 📄 Licença
-
-Distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais informações.
